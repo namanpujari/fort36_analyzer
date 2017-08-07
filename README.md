@@ -1,7 +1,7 @@
 # fort36_analyzer
 Does several analysis steps on the data file fort.36 (a product of a successful run of MCCE)
 ### Usage
-The main.py file uses the ArgumentParses module in python, meaning that arguments must be given within the command line itself. Here is what the help command returns:
+The main.py file uses the ArgumentParser module in python, meaning that arguments must be given within the command line itself. Here is what the help command returns:
 ```
 usage: main.py [-h] -f FORT36_LOCATION -out OUTPUT_LOCATION
                [-stdev STANDARD_DEVIATION]
