@@ -6,21 +6,20 @@ import os
 import sys
 
 def fort36Ave_condensed(fort36_file, out_location):
+	_res = pd.DataFrame()
 	df = pd.read_csv(fort36_file,
 		sep = "\s+", header = None, usecols = [2, 6, 9],
 		names = ['pH', 'E_type', 'E'])
 	#print(df)
-	AverE_df = df[ df['E_type'] == 'Ave.' ]
-
-	# the agg.function is used on groupby objects and allows for users
-	# to combine multiple statistics. For example, we can get values for 
-	# both mean and std, grouped by pH, in one line.
-	_res = AverE_df.groupby(['pH'], sort=False).agg( ['mean', 'std'] )
-	_res.columns = ['Mean', 'Std']
 	
-	for type in ['Mean', 'Std']:
-		_res[type] = ['%.3f' % round(val,3) for val in 
-			_res[type]]
+	for energy_type in ['Ave', 'Min', 'Unf']:
+		E_type_df = df[df['E_type'] == energy_type+'.']
+		sub_res = E_type_df.groupby(['pH'], sort = False).agg( ['mean', 'std' ])
+		sub_res.columns = ['Mean_'+energy_type, 'Std_'+energy_type]
+		for column_name in sub_res.columns:		
+			sub_res[column_name] = ['%.3f' % round(val,3) for val in sub_res[column_name]]
+		_res = _res.join(sub_res, how = 'right')
+
 
 	file_location = out_location
 	if not os.path.exists(file_location):
