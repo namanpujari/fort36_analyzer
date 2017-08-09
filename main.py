@@ -67,11 +67,15 @@ def fort36Conformers_std(fort36_file, out_location):
 	file_name = 'fort99'
 	to_write_loc = os.path.join(file_location, file_name)
 
-	master_df.transpose().to_csv(to_write_loc, sep = ' ', header = ['pH            0.00  1.00  \
-2.00  3.00  4.00  5.00  6.00  7.00  8.00  9.00 10.00 11.00 12.00 13.00 14.00','', '', '',
-		'', '', '', '', '', '', '','' , '', '', ''])
-	
-	std_cap = 0.100
+	#master_df.transpose().to_csv(to_write_loc, sep = ' ', header = ['pH            0.00  1.00  \
+#2.00  3.00  4.00  5.00  6.00  7.00  8.00  9.00 10.00 11.00 12.00 13.00 14.00','', '', '',
+#		'', '', '', '', '', '', '','' , '', '', ''])
+	final_df = master_df.transpose()
+	final_df.index.name = 'pH'
+	master_df.transpose().to_csv(to_write_loc, sep = ' ')#, header = ['pH','0.00','1.00','2.00','3.00',
+		#'4.00','5.00','6.00','7.00','8.00','9.00','10.00','11.00','12.00','13.00','14.00'])
+
+	std_cap = 0.010
 	high_std = []
 	analysis_file = open(to_write_loc, 'r').readlines()
 	for line_index in range(len(analysis_file)):
@@ -87,19 +91,47 @@ def fort36Conformers_std(fort36_file, out_location):
 					pass
 
 	with open(to_write_loc, 'a') as append:
-		append.write('''-------------------------------------------------------------------------------------------------
+		append.write('''
 ------------------------------------------SUMMARY------------------------------------------------
 -------------------------------------HIGH STD CONFORMERS-----------------------------------------
 
 ''')
 		if(len(high_std) == 0):
-			summary = 'NO HIGH STD CONFORMERS FOUND'
+			summary = 'NO CONFORMERS WITH AN STD VALUE >= ' + str(std_cap) + ' AT ANY PH FOUND'
 		else:
 			summary = ''.join([analysis_file[line] for
 						line in high_std])
+			append.write('CONFORMERS WITH STD VALUE >= ' + str(std_cap) + ' AT ANY PH\n\n')
 		append.write(summary)
 		append.close()	
 
+def make_pretty(output_location):
+
+	template_fort98 = ['{0:6}','{0:10}','{0:10}','{0:10}','{0:10}','{0:10}','{0:10}\n']
+	read_in = open(os.path.join(output_location, 'fort98'), 'r').readlines()
+	to_write = open(os.path.join(output_location, 'fort98'), 'w')
+
+	for line in read_in:
+		for word_index in range(len(line.split())):
+			to_write.write(template_fort98[word_index].format(line.split()[word_index]))	
+	to_write.close()		
+
+	template_fort99 = ['{0:15}', '{0:6}','{0:6}','{0:6}','{0:6}','{0:6}','{0:6}',
+			'{0:6}','{0:6}','{0:6}','{0:6}','{0:6}','{0:6}','{0:6}',
+			'{0:6}', '{0:6}\n']
+	
+	read_in = open(os.path.join(output_location, 'fort99'), 'r').readlines()
+	to_write = open(os.path.join(output_location, 'fort99'), 'w')
+	
+	for line in read_in:
+		if(len(line.split()) != 16):
+			to_write.write(line)
+		else: 
+			for word_index in range(len(line.split())):	
+				to_write.write(template_fort99[word_index].format(line.split()[word_index]))	
+		
+# len(template_fort99))	
+			
 
 def ask_arguments():
 	parser = ArgumentParser(description = '''Analyze values in fort36, 
@@ -127,6 +159,6 @@ if __name__ == '__main__':
 	args = ask_arguments()
 	fort36Ave_condensed(args.fort36_location, args.output_location)
 	fort36Conformers_std(args.fort36_location, args.output_location)
-
+	make_pretty(args.output_location)
 
 
